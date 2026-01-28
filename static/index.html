@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendance Management System</title>
+<style>
+:root {
+--admin-primary: #4338ca;
+--admin-secondary: #3730a3;
+--admin-hover: #312e81;
+--admin-light: #818cf8;
+--teacher-primary: #047857;
+--teacher-secondary: #065f46;
+--teacher-hover: #044f3c;
+--teacher-light: #34d399;
+--success: #10b981;
+--warning: #f59e0b;
+--danger: #ef4444;
+--info: #3b82f6;
+--leave: #8b5cf6;
+--gray-100: #f3f4f6;
+--gray-200: #e5e7eb;
+--gray-300: #d1d5db;
+--gray-400: #9ca3af;
+--gray-500: #6b7280;
+--gray-600: #4b5563;
+--gray-700: #374151;
+--gray-800: #1f2937;
+--gray-900: #111827;
+--white: #ffffff;
+--shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+--shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+--shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+--shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+--transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+--border-radius: 0.75rem;
+--border-radius-lg: 1rem;
+--sidebar-width: 16rem;
+--form-field-height: 2.5rem;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9fafb; color: var(--gray-800); line-height: 1.5; overflow-x: hidden; }
+.login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #4f46e5 0%, #7e3af2 100%); padding: 1.5rem; position: relative; overflow: hidden; }
+.login-container::before { content: ''; position: absolute; width: 100%; height: 100%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%); z-index: 0; }
+.login-card { background: var(--white); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-lg); width: 100%; max-width: 28rem; padding: 2.5rem; position: relative; z-index: 10; transition: var(--transition); }
+.login-card:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+.login-header { text-align: center; margin-bottom: 2rem; }
+.login-header h1 { font-size: 1.875rem; font-weight: 800; background: linear-gradient(to right, var(--admin-primary), var(--teacher-primary)); -webkit-background-clip: text; background-clip: text; color: transparent; margin-bottom: 0.5rem; letter-spacing: -0.025em; }
+.login-header p { color: var(--gray-500); font-size: 0.875rem; }
+.role-selector { display: flex; gap: 1rem; margin-bottom: 1.5rem; background: var(--gray-100); border-radius: var(--border-radius); padding: 0.25rem; }
+.role-btn { flex: 1; padding: 0.75rem; border-radius: var(--border-radius); font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: var(--transition); border: none; color: var(--gray-600); background: transparent; }
+.role-btn.admin { color: var(--admin-primary); }
+.role-btn.teacher { color: var(--teacher-primary); }
+.role-btn.active { background: var(--white); box-shadow: var(--shadow); color: var(--white); position: relative; z-index: 2; }
+.role-btn.admin.active { background: var(--admin-primary); }
+.role-btn.teacher.active { background: var(--teacher-primary); }
+.form-group { margin-bottom: 1.25rem; }
+.form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--gray-700); font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; }
+.form-group label.required::after { content: '*'; color: var(--danger); margin-left: 0.25rem; }
+.form-control { width: 100%; padding: 0.875rem 1rem; border: 1px solid var(--gray-300); border-radius: var(--border-radius); font-size: 0.875rem; transition: var(--transition); height: var(--form-field-height); font-family: inherit; }
+.form-control:focus { outline: none; border-color: var(--admin-primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); }
+.form-control.teacher:focus { border-color: var(--teacher-primary); box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2); }
+.login-btn { width: 100%; padding: 0.875rem; background-color: var(--admin-primary); color: var(--white); border: none; border-radius: var(--border-radius); font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: var(--transition); margin-top: 0.5rem; height: var(--form-field-height); }
+.login-btn.teacher { background-color: var(--teacher-primary); }
+.login-btn:hover { background-color: var(--admin-hover); }
+.login-btn.teacher:hover { background-color: var(--teacher-hover); }
+.login-btn:disabled { background-color: var(--gray-300); cursor: not-allowed; opacity: 0.7; }
+.password-toggle { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 1.125rem; }
+.password-container { position: relative; }
+.error-message { color: var(--danger); font-size: 0.75rem; margin-top: 0.25rem; display: none; }
+.error-message.show { display: block; animation: fadeIn 0.3s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
+.dashboard { display: none; min-height: 100vh; background-color: #f9fafb; }
+.dashboard.active { display: flex; }
+.sidebar { width: var(--sidebar-width); background: linear-gradient(to bottom, var(--admin-primary), var(--admin-secondary)); color: var(--white); display: flex; flex-direction: column; transition: var(--transition); box-shadow: var(--shadow-md); z-index: 100; position: fixed; height: 100vh; left: 0; top: 0; }
+.sidebar.teacher { background: linear-gradient(to bottom, var(--teacher-primary), var(--teacher-secondary)); }
+.sidebar-header { padding: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: space-between; align-items: center; }
+.sidebar-header h1 { font-size: 1.375rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-menu { padding: 1rem 0; flex: 1; overflow-y: auto; }
+.sidebar-menu a { display: flex; align-items: center; padding: 0.875rem 1.5rem; color: rgba(255, 255, 255, 0.85); text-decoration: none; font-weight: 500; transition: var(--transition); gap: 0.875rem; position: relative; }
+.sidebar-menu a:hover, .sidebar-menu a.active { background: rgba(255, 255, 255, 0.15); color: var(--white); }
+.sidebar-menu a.active { border-left: 3px solid var(--white); padding-left: 1.25rem; }
+.sidebar-footer { padding: 1.25rem; border-top: 1px solid rgba(255, 255, 255, 0.1); background: rgba(0, 0, 0, 0.1); }
+.user-info { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.15); }
+.user-avatar { width: 2.5rem; height: 2.5rem; border-radius: 50%; background: rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem; }
+.user-details span { display: block; font-size: 0.75rem; opacity: 0.8; }
+.logout-btn { display: flex; align-items: center; width: 100%; padding: 0.75rem; background: rgba(255, 255, 255, 0.15); color: var(--white); border: none; border-radius: var(--border-radius); font-weight: 500; cursor: pointer; transition: var(--transition); gap: 0.75rem; }
+.logout-btn:hover { background: rgba(255, 255, 255, 0.25); }
+.main-content { flex: 1; display: flex; flex-direction: column; margin-left: var(--sidebar-width); transition: margin-left 0.3s ease; }
+.header { background-color: var(--white); border-bottom: 1px solid var(--gray-200); padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); position: sticky; top: 0; z-index: 90; }
+.header h1 { font-size: 1.5rem; font-weight: 700; color: var(--gray-800); }
+.header-info { display: flex; align-items: center; gap: 1.5rem; }
+.date-display { color: var(--gray-500); font-size: 0.875rem; background: var(--gray-100); padding: 0.25rem 0.75rem; border-radius: 9999px; }
+.user-badge { background-color: var(--admin-light); color: var(--admin-secondary); padding: 0.375rem 1rem; border-radius: 9999px; font-weight: 600; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; }
+.user-badge.teacher { background-color: var(--teacher-light); color: var(--teacher-secondary); }
+.content-area { padding: 1.5rem; overflow-y: auto; flex: 1; background-color: #f9fafb; }
+.card { background-color: var(--white); border-radius: var(--border-radius-lg); box-shadow: var(--shadow); margin-bottom: 1.5rem; overflow: hidden; }
+.card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+.card-header h2 { font-size: 1.25rem; font-weight: 600; color: var(--gray-800); display: flex; align-items: center; gap: 0.75rem; }
+.card-title { display: flex; align-items: center; gap: 0.75rem; }
+.filters { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+.filter-group { display: flex; flex-direction: column; min-width: 150px; }
+.filter-group label { font-size: 0.75rem; color: var(--gray-500); margin-bottom: 0.25rem; }
+.filter-select, .filter-input { padding: 0.5rem 0.75rem; border: 1px solid var(--gray-300); border-radius: var(--border-radius); background-color: var(--white); font-size: 0.875rem; height: var(--form-field-height); }
+.filter-select:focus, .filter-input:focus { outline: none; border-color: var(--admin-primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); }
+.filter-select.teacher:focus, .filter-input.teacher:focus { border-color: var(--teacher-primary); box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2); }
+.action-buttons { display: flex; gap: 0.75rem; margin-top: 1.5rem; flex-wrap: wrap; }
+.action-btn { padding: 0.625rem 1.25rem; border-radius: var(--border-radius); font-weight: 500; cursor: pointer; transition: var(--transition); border: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; height: var(--form-field-height); font-size: 0.875rem; }
+.primary-btn { background-color: var(--admin-primary); color: white; }
+.primary-btn.teacher { background-color: var(--teacher-primary); }
+.primary-btn:hover { background-color: var(--admin-hover); }
+.primary-btn.teacher:hover { background-color: var(--teacher-hover); }
+.secondary-btn { background-color: var(--gray-200); color: var(--gray-700); }
+.secondary-btn:hover { background-color: var(--gray-300); }
+.danger-btn { background-color: var(--danger); color: white; }
+.danger-btn:hover { background-color: #dc2626; }
+.card-body { padding: 1.5rem; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; }
+.data-table { width: 100%; border-collapse: collapse; min-width: 600px; font-size: 0.875rem; }
+.data-table th { text-align: left; padding: 1rem 1.5rem; font-weight: 600; color: var(--gray-600); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; background-color: var(--gray-50); position: sticky; top: 0; }
+.data-table td { padding: 1rem 1.5rem; border-top: 1px solid var(--gray-200); color: var(--gray-700); }
+.data-table tbody tr:hover { background-color: var(--gray-50); }
+.status-badge { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-align: center; min-width: 70px; }
+.status-present { background-color: #dcfce7; color: #15803d; }
+.status-absent { background-color: #fee2e2; color: #b91c1c; }
+.status-late { background-color: #ffedd5; color: #c2410c; }
+.status-early { background-color: #dbeafe; color: #1e40af; }
+.status-leave { background-color: #ede9fe; color: #5b21b6; }
+.status-pending { background-color: #fef3c7; color: #92400e; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem; }
+.stat-card { background-color: var(--white); border-radius: var(--border-radius); padding: 1.5rem; box-shadow: var(--shadow); border: 1px solid var(--gray-200); text-align: center; transition: var(--transition); }
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.stat-label { font-size: 0.875rem; color: var(--gray-500); margin-bottom: 0.5rem; font-weight: 500; }
+.stat-value { font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem; }
+.stat-present .stat-value { color: var(--success); }
+.stat-absent .stat-value { color: var(--danger); }
+.stat-late .stat-value { color: var(--warning); }
+.stat-early .stat-value { color: var(--info); }
+.stat-leave .stat-value { color: var(--leave); }
+.checkbox-container { display: flex; align-items: center; gap: 0.5rem; }
+.custom-checkbox { width: 1.25rem; height: 1.25rem; border: 2px solid var(--gray-300); border-radius: 0.25rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); flex-shrink: 0; }
+.custom-checkbox.checked { background-color: var(--admin-primary); border-color: var(--admin-primary); }
+.custom-checkbox.checked::after { content: '✓'; color: white; font-weight: bold; font-size: 0.875rem; }
+.custom-checkbox.teacher.checked { background-color: var(--teacher-primary); border-color: var(--teacher-primary); }
+.checkbox-label { font-size: 0.875rem; color: var(--gray-700); cursor: pointer; }
+.empty-state { text-align: center; padding: 3rem 1.5rem; color: var(--gray-500); }
+.empty-state-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+.empty-state p { margin-top: 0.5rem; font-size: 0.875rem; }
+.empty-state .primary-btn { margin-top: 1.5rem; }
+.tabs { display: flex; border-bottom: 1px solid var(--gray-200); margin-bottom: 1.5rem; }
+.tab { padding: 0.75rem 1.5rem; cursor: pointer; font-weight: 500; color: var(--gray-500); border-bottom: 2px solid transparent; }
+.tab.active { color: var(--admin-primary); border-bottom-color: var(--admin-primary); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+@media (max-width: 1024px) { .sidebar { width: 14rem; } .main-content { margin-left: 14rem; } .header { padding: 1rem; } .content-area { padding: 1rem; } }
+@media (max-width: 768px) { .dashboard { flex-direction: column; } .sidebar { width: 100%; height: auto; max-height: 40vh; position: relative; } .sidebar-menu { max-height: 30vh; overflow-y: auto; } .main-content { margin-left: 0; } .role-selector { flex-direction: column; } .stats-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); } .filters { width: 100%; flex-direction: column; align-items: stretch; } .card-header { flex-direction: column; align-items: stretch; } .form-grid { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .login-card { padding: 1.5rem; margin: 0.5rem; } .stats-grid { grid-template-columns: repeat(2, 1fr); } .data-table th, .data-table td { padding: 0.75rem 1rem; font-size: 0.8125rem; } .stat-value { font-size: 1.75rem; } .action-buttons { flex-direction: column; } .action-btn { width: 100%; } }
+.spinner { border: 3px solid rgba(0, 0, 0, 0.1); border-top: 3px solid var(--admin-primary); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 0 auto; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background-color: var(--white); color: var(--gray-800); padding: 1rem 1.5rem; border-radius: var(--border-radius); box-shadow: var(--shadow-lg); display: flex; align-items: center; gap: 0.75rem; transform: translateX(400px); transition: transform 0.3s ease-out; z-index: 9999; border-left: 4px solid var(--gray-300); }
+.toast.show { transform: translateX(0); }
+.toast.success { border-left-color: var(--success); }
+.toast.error { border-left-color: var(--danger); }
+.toast.warning { border-left-color: var(--warning); }
+.toast-icon { font-size: 1.25rem; font-weight: bold; }
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s; }
+.modal.show { display: flex; opacity: 1; }
+.modal-content { background-color: var(--white); border-radius: var(--border-radius-lg); box-shadow: var(--shadow-lg); width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; animation: modalOpen 0.3s; }
+@keyframes modalOpen { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--gray-200); display: flex; justify-content: space-between; align-items: center; }
+.modal-header h3 { font-size: 1.25rem; font-weight: 600; }
+.close-modal { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500); width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: var(--transition); }
+.close-modal:hover { background-color: var(--gray-100); color: var(--gray-700); }
+.modal-body { padding: 1.5rem; }
+.modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end; gap: 0.75rem; }
+.qr-container { background-color: #1a1a1a; border-radius: var(--border-radius); padding: 2rem; margin: 1.5rem 0; position: relative; overflow: hidden; text-align: center; }
+.qr-video { width: 100%; max-width: 400px; border-radius: var(--border-radius); background-color: #2a2a2a; min-height: 300px; display: flex; align-items: center; justify-content: center; color: var(--gray-500); margin-bottom: 1.5rem; }
+.scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(to right, transparent, var(--admin-light), transparent); animation: scan 2s linear infinite; }
+@keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+.qr-instructions { color: var(--gray-300); margin-bottom: 1.5rem; line-height: 1.6; }
+.qr-instructions ol { text-align: left; padding-left: 1.5rem; margin-top: 0.5rem; }
+.qr-instructions li { margin-bottom: 0.25rem; }
+.form-control.error { border-color: var(--danger); }
+.form-control.success { border-color: var(--success); }
+.action-cell { display: flex; gap: 0.5rem; white-space: nowrap; }
+.icon-btn { width: 2rem; height: 2rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition); border: none; font-size: 0.875rem; }
+.icon-btn.edit { background-color: var(--gray-100); color: var(--gray-700); }
+.icon-btn.edit:hover { background-color: var(--gray-200); }
+.icon-btn.delete { background-color: #fee2e2; color: #b91c1c; }
+.icon-btn.delete:hover { background-color: #fecaca; }
+.table-container { overflow-x: auto; width: 100%; }
+</style>
+</head>
+<body>
+<!-- Login Page -->
+<div class="login-container" id="loginPage">
+<div class="login-card">
+<div class="login-header">
+<h1>Attendance Management System</h1>
+<p>Secure login for authorized personnel only</p>
+</div>
+<div class="role-selector">
+<button class="role-btn admin active" data-role="admin">Admin</button>
+<button class="role-btn teacher" data-role="teacher">Teacher</button>
+</div>
+<form id="loginForm">
+<!-- Admin Login Fields -->
+<div id="adminLoginFields">
+<div class="form-group">
+<label for="adminId" class="required">User ID</label>
+<input type="text" id="adminId" class="form-control" placeholder="Enter Admin ID" required>
+<div class="error-message" id="adminIdError">Please enter a valid Admin ID</div>
+</div>
+<div class="form-group">
+<label for="adminPassword" class="required">Password</label>
+<div class="password-container">
+<input type="password" id="adminPassword" class="form-control" placeholder="Enter Password" required>
+<button type="button" class="password-toggle" id="toggleAdminPassword">👁️</button>
+</div>
+<div class="error-message" id="adminPasswordError">Password is required</div>
+</div>
+</div>
+<!-- Teacher Login Fields -->
+<div id="teacherLoginFields" style="display: none;">
+<div class="form-group">
+<label for="teacherId" class="required">User ID</label>
+<input type="text" id="teacherId" class="form-control" placeholder="Enter Teacher ID" required>
+<div class="error-message" id="teacherIdError">Please enter a valid Teacher ID</div>
+</div>
+<div class="form-group">
+<label for="teacherGrade" class="required">Select Grade</label>
+<select id="teacherGrade" class="form-control" required>
+<option value="">Select Grade</option>
+<option value="Grade 1">Grade 1</option>
+<option value="Grade 2">Grade 2</option>
+<option value="Grade 3">Grade 3</option>
+<option value="Grade 4">Grade 4</option>
+<option value="Grade 5">Grade 5</option>
+<option value="Grade 6">Grade 6</option>
+<option value="Grade 7">Grade 7</option>
+<option value="Grade 8">Grade 8</option>
+<option value="Grade 9">Grade 9</option>
+<option value="Grade 10">Grade 10</option>
+<option value="Grade 11">Grade 11</option>
+<option value="Grade 12">Grade 12</option>
+</select>
+<div class="error-message" id="teacherGradeError">Please select your grade</div>
+</div>
+<div class="form-group">
+<label for="teacherPassword" class="required">Password</label>
+<div class="password-container">
+<input type="password" id="teacherPassword" class="form-control" placeholder="Enter Password" required>
+<button type="button" class="password-toggle" id="toggleTeacherPassword">👁️</button>
+</div>
+<div class="error-message" id="teacherPasswordError">Password is required</div>
+</div>
+</div>
+<button type="submit" class="login-btn" id="loginBtn">Login</button>
+</form>
+</div>
+</div>
+
+<!-- Admin Dashboard -->
+<div class="dashboard" id="adminDashboard">
+<div class="sidebar">
+<div class="sidebar-header">
+<h1>Admin Dashboard</h1>
+</div>
+<nav class="sidebar-menu">
+<a href="#" class="active" data-view="admin-dashboard"><span>🏠</span> Dashboard</a>
+<a href="#" data-view="manage-employees"><span>👥</span> Manage Employees</a>
+<a href="#" data-view="scan-qr"><span>📱</span> Scan QR</a>
+<a href="#" data-view="view-employee-attendance"><span>📋</span> View Attendance of Employees</a>
+<a href="#" data-view="view-student-attendance"><span>📊</span> View Attendance of Students</a>
+</nav>
+<div class="sidebar-footer">
+<div class="user-info">
+<div class="user-avatar">AD</div>
+<div class="user-details">
+<span id="adminUserName">Admin User</span>
+<span>Administrator</span>
+</div>
+</div>
+<button class="logout-btn" id="adminLogout"><span>🚪</span> Logout</button>
+</div>
+</div>
+<div class="main-content">
+<header class="header">
+<h1>Welcome to Admin Dashboard</h1>
+<div class="header-info">
+<div class="date-display" id="currentDateAdmin">Tuesday, January 27, 2026</div>
+<div class="user-badge"><span>👤</span><span id="adminUserDisplay">Admin</span></div>
+</div>
+</header>
+<main class="content-area">
+<div id="admin-dashboard-view" class="view active">
+<div class="card">
+<div class="card-header"><h2 class="card-title">📅 Today's Employees Attendance</h2></div>
+<div class="card-body">
+<div class="table-container">
+<table class="data-table">
+<thead>
+<tr><th>S.N</th><th>Dayname</th><th>Emp Name</th><th>Check-in Time</th><th>Check-out Time</th><th>Status</th><th>Remarks</th></tr>
+</thead>
+<tbody id="employeesTableBody">
+<tr><td colspan="7" class="empty-state"><div class="empty-state-icon">📋</div><p>Loading attendance records...</p></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="stats-grid">
+<div class="stat-card stat-present"><div class="stat-label">Total Present Count</div><div class="stat-value" id="adminPresentCount">0</div></div>
+<div class="stat-card stat-absent"><div class="stat-label">Total Absent Count</div><div class="stat-value" id="adminAbsentCount">0</div></div>
+<div class="stat-card stat-late"><div class="stat-label">Total Late Count</div><div class="stat-value" id="adminLateCount">0</div></div>
+<div class="stat-card stat-early"><div class="stat-label">Total Early Count</div><div class="stat-value" id="adminEarlyCount">0</div></div>
+<div class="stat-card stat-leave"><div class="stat-label">Total Leave Count</div><div class="stat-value" id="adminLeaveCount">0</div></div>
+</div>
+<div class="card">
+<div class="card-header">
+<h2 class="card-title">🎓 Student Attendance</h2>
+<div class="filters">
+<div class="filter-group"><label for="adminGradeFilter">Grade</label><select class="filter-select" id="adminGradeFilter"><option value="">Select Grade</option><option value="Grade 1">Grade 1</option><option value="Grade 2">Grade 2</option><option value="Grade 3">Grade 3</option><option value="Grade 4">Grade 4</option><option value="Grade 5">Grade 5</option><option value="Grade 6">Grade 6</option></select></div>
+<div class="filter-group"><label for="adminSectionFilter">Section</label><select class="filter-select" id="adminSectionFilter"><option value="">Select Section</option><option value="A">Section A</option><option value="B">Section B</option><option value="C">Section C</option></select></div>
+<button class="primary-btn" id="loadStudentAttendanceBtn"><span>⟳</span> Load</button>
+</div>
+</div>
+<div class="card-body">
+<div class="table-container">
+<table class="data-table">
+<thead><tr><th>S.N</th><th>Student Name</th><th>Present</th></tr></thead>
+<tbody id="adminStudentsTableBody">
+<tr><td colspan="3" class="empty-state"><div class="empty-state-icon">🎓</div><p>Select grade and section to view student attendance</p></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div id="manage-employees-view" class="view">
+<div class="card">
+<div class="card-header"><h2 class="card-title">👥 Manage Employees</h2><button class="primary-btn" id="addNewEmployeeBtn"><span>➕</span> Add Employee</button></div>
+<div class="card-body">
+<div class="table-container">
+<table class="data-table">
+<thead><tr><th>S.N</th><th>Employee ID</th><th>Name</th><th>Email</th><th>Grade Assigned</th><th>Actions</th></tr></thead>
+<tbody id="employeesManagementTableBody">
+<tr><td colspan="6" class="empty-state"><div class="empty-state-icon">👥</div><p>Loading employees...</p></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div id="scan-qr-view" class="view">
+<div class="card">
+<div class="card-header"><h2 class="card-title">📱 Scan QR for Attendance</h2></div>
+<div class="card-body">
+<div class="qr-container">
+<div class="qr-video"><div>Camera preview will appear here</div><div class="scan-line"></div></div>
+<p class="qr-instructions">Point your camera at the employee's QR code badge. The system will automatically detect and record attendance.<ol><li>Position the QR code within the frame</li><li>Hold your device steady until the code is recognized</li><li>System will automatically record attendance</li><li>Check-in time will be recorded as current time</li></ol></p>
+<button class="primary-btn" id="startScanBtn"><span>📷</span> Start Camera</button>
+</div>
+<div class="card" style="margin-top: 1.5rem;">
+<div class="card-header"><h2 class="card-title">📝 Recent Scans</h2></div>
+<div class="card-body">
+<div class="table-container">
+<table class="data-table">
+<thead><tr><th>S.N</th><th>Employee Name</th><th>Scan Time</th><th>Status</th></tr></thead>
+<tbody id="recentScansTableBody">
+<tr><td colspan="4" class="empty-state"><div class="empty-state-icon">⏱️</div><p>No recent scans</p></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="view-employee-attendance-view" class="view">
+<div class="card">
+<div class="card-header">
+<h2 class="card-title">📋 Employee Attendance Records</h2>
+<div class="filters">
+<div class="filter-group"><label for="empDateFilter">Date Range</label><input type="date" class="filter-input" id="empDateFilter"></div>
+<div class="filter-group"><label for="empGradeFilter">Grade</label><select class="filter-select" id="empGradeFilter"><option value="">All Grades</option><option value="Grade 1">Grade 1</option><option value="Grade 2">Grade 2</option><option value="Grade 3">Grade 3</option><option value="Grade 4">Grade 4</option><option value="Grade 5">Grade 5</option><option value="Grade 6">Grade 6</option></select></div>
+<button class="primary-btn"><span>🔍</span> Search</button>
+</div>
+</div>
+<div class="card-body">
+<div class="table-container">
+<table class="data-table">
+<thead><tr><th>S.N</th><th>Date</th><th>Employee Name</th><th>Grade</th><th>Check-in Time</th><th>Check-out Time</th><th>Status</th></tr></thead>
+<tbody id="employeeAttendanceRecordsBody">
+<tr><td colspan="7" class="empty-state"><div class="empty-state-icon">📋</div><p>Loading attendance records...</p></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div id="view-student-attendance-view" class="view">
+<div class="card">
+<div class="card-header">
+<h2 class="card-title">📊 Student Attendance Records</h2>
+<div class="filters">
+<div class="filter-group"><label for="stuDateFilter">Date Range</label><input type="date" class="filter-input" id="stuDateFilter"></div>
+<div class="filter-group"><label for="stuGradeFilter">Grade</label><select class="filter-select" id="stuGradeFilter"><option value="">Select Grade</option><option value="Grade 1">Grade 1</option><option value="Grade 2">Grade 2</option><option value="Grade 3">Grade 3</option><option value="Grade 4">Grade 4</option><option value="Grade 5">Grade 5</option><option value="Grade 6">Grade 6</option></select></div>
+<div class="filter-group"><label for="stuSectionFilter">Section</label><select class="filter-select" id="stuSectionFilter"><option value="">Select Section</option><option value="A">Section A</option><option value="B">Section B</option><option value="C">Section C</option></select></div>
+<button class="primary-btn"><span>🔍</span> Search</button>
+</div>
+</div>
+<div class="card-body">
+<div class="table-container">
+<table class="data-table">
+<thead><tr><th>S.N</th><th>Date</th><th>Student Name</th><th>Grade/Section</th><th>Status</th><th>Recorded By</th></tr></thead>
+<tbody id="studentAttendanceRecordsBody">
+<tr><td colspan="6" class="empty-state"><div class="empty-state-icon">📊</div><p>Loading student attendance records...</p></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+
+<!-- Teacher Dashboard -->
+<div class="dashboard" id="teacherDashboard">
+<div class="sidebar teacher">
+<div class="sidebar-header"><h1>Teacher Dashboard</h1></div>
+<nav class="sidebar-menu">
+<a href="#" class="active" data-view="teacher-dashboard"><span>🏠</span> Dashboard</a>
+<a href="#" data-view="take-attendance"><span>📝</span> Take Attendance</a>
+<a href="#" data-view="manage-students"><span>👥</span> Manage Students</a>
+<a href="#" data-view="view-attendance"><span>📋</span> View Attendance</a>
+</nav>
+<div class="sidebar-footer">
+<div class="user-info">
+<div class="user-avatar">T</div>
+<div class="user-details">
+<span id="teacherUserName">Teacher User</span>
+<span id="teacherGradeDisplay">Grade 5</span>
+</div>
+</div>
+<button class="logout-btn" id="teacherLogout"><span>🚪</span> Logout</button>
+</div>
+</div>
+<div class="main-content">
+<header class="header">
+<h1>Welcome to Teacher Dashboard</h1>
+<div class="header-info">
+<div class="date-display" id="currentDateTeacher">Tuesday, January 27, 2026</div>
+<div class="user-badge teacher"><span>👤</span><span id="teacherUserDisplay">Teacher</span></div>
+</div>
+</header>
+<main class="content-area">
+<div id="teacher-dashboard-view" class="view active">
+<div class="card">
+<div class="card-header"><h2 class="card-title">📅 Today's Attendance</h2></div>
+<div class="card-body">
+<div class="table-container">
+<table class="data-table">
+<thead><tr><th>S.N</th><th>Date</th><th>Day</th><th>Check-in Time</th><th>Check-out Time</th><th>Status</th><th>Remarks</th></tr></thead>
+<tbody id="teacherAttendanceTableBody">
+<tr><td colspan="7" class="empty-state"><div class="empty-state-icon">⏰</div><p>Loading your attendance...</p></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="stats-grid">
+<div class="stat-card stat-present"><div class="stat-label">Total Present Count</div><div class="stat-value" id="teacherPresentCount">0</div></div>
+<div class="stat-card stat-absent"><div class="stat-label">Total Absent Count</div><div class="stat-value" id="teacherAbsentCount">0</div></div>
+<div class="stat-card stat-late"><div class="stat-label">Total Late Count</div><div class="stat-value" id="teacherLateCount">0</div></div>
+<div class="stat-card stat-early"><div class="stat-label">Total Early Count</div><div class="stat-value" id="teacherEarlyCount">0</div></div>
+<div class="stat-card stat-leave"><div class="stat-label">Total Leave Count</div><div class="stat-value" id="teacherLeaveCount">0</div></div>
+</div>
+</div>
+<div id="take-attendance-view" class="view">
+<div class="card">
+<div class="card-header">
+<h2 class="card-title">📝 Take Student Attendance</h2>
+<div class="filters">
+<div class="filter-group"><label for="teacherGradeFilter">Grade</label><select class="filter-select teacher" id="teacherGradeFilter"><option value="">Select Grade</option><option value="Grade 1">Grade 1</option><option value="Grade 2">Grade 2</option><option value="Grade 3">Grade 3</option><option value="Grade 4">Grade 4</option><option value="Grade 5" selected>Grade 5</option><option value="Grade 6">Grade 6</option></select></div>
+<div class="filter-group"><label for="teacherSectionFilter">Section</label><select class="filter-select teacher" id="teacherSectionFilter"><option value="">Select Section</option><option value="A" selected>Section A</option><option value="B">Section B</option><option value="C">Section C</option></select></div>
+<button class="primary-btn teacher" id="loadStudentsBtn"><span>⟳</span> Load Students</button>
+</div>
+</div>
+<div class="card-body">
+<div class="table-container">
+<table class="data-table">
+<thead><tr><th>S.N</th><th>Student Name</th><th>Present</th></tr></thead>
+<tbody id="teacherStudentsTableBody">
+<tr><td colspan="3" class="empty-state"><div class="empty-state-icon">🎓</div><p>Select grade and section to load students</p></td></tr>
+</tbody>
+</table>
+</div>
+<div class="action-buttons">
+<button class="primary-btn teacher" id="saveAttendanceBtn"><span>💾</span> Save Attendance</button>
+<button class="secondary-btn" id="resetAttendanceBtn"><span>↺</span> Reset</button>
+</div>
+</div>
+</div>
+</div>
+<div id="manage-students-view" class="view">
+<div class="card">
+<div class="card-header"><h2 class="card-title">👥 Manage Students</h2><button class="primary-btn teacher" id="addNewStudentBtn"><span>➕</span> Add Student</button></div>
+<div class="card-body">
+<div class="table-container">
+<table class="data-table">
+<thead><tr><th>S.N</th><th>Student ID</th><th>Name</th><th>Grade/Section</th><th>Parent Contact</th><th>Actions</th></tr></thead>
+<tbody id="studentsManagementTableBody">
+<tr><td colspan="6" class="empty-state"><div class="empty-state-icon">👥</div><p>Loading students...</p></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div id="view-attendance-view" class="view">
+<div class="card">
+<div class="card-header"><h2 class="card-title">📋 Attendance Records</h2></div>
+<div class="card-body">
+<div class="tabs">
+<div class="tab active" data-tab="teacher-attendance">My Attendance</div>
+<div class="tab" data-tab="student-attendance">Student Attendance</div>
+</div>
+<div class="tab-content active" id="teacher-attendance-tab">
+<div class="filters" style="margin-bottom: 1.5rem;">
+<div class="filter-group"><label for="teacherDateFilter">Date Range</label><input type="date" class="filter-input teacher" id="teacherDateFilter"></div>
+<button class="primary-btn teacher"><span>🔍</span> Search</button>
+</div>
+<div class="table-container">
+<table class="data-table">
+<thead><tr><th>S.N</th><th>Date</th><th>Day</th><th>Check-in Time</th><th>Check-out Time</th><th>Status</th><th>Remarks</th></tr></thead>
+<tbody id="teacherAttendanceHistoryBody">
+<tr><td colspan="7" class="empty-state"><div class="empty-state-icon">📋</div><p>Loading attendance history...</p></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="tab-content" id="student-attendance-tab">
+<div class="filters" style="margin-bottom: 1.5rem;">
+<div class="filter-group"><label for="historyGradeFilter">Grade</label><select class="filter-select teacher" id="historyGradeFilter"><option value="">Select Grade</option><option value="Grade 1">Grade 1</option><option value="Grade 2">Grade 2</option><option value="Grade 3">Grade 3</option><option value="Grade 4">Grade 4</option><option value="Grade 5" selected>Grade 5</option><option value="Grade 6">Grade 6</option></select></div>
+<div class="filter-group"><label for="historySectionFilter">Section</label><select class="filter-select teacher" id="historySectionFilter"><option value="">Select Section</option><option value="A" selected>Section A</option><option value="B">Section B</option><option value="C">Section C</option></select></div>
+<div class="filter-group"><label for="historyDateFilter">Date</label><input type="date" class="filter-input teacher" id="historyDateFilter"></div>
+<button class="primary-btn teacher"><span>🔍</span> Search</button>
+</div>
+<div class="table-container">
+<table class="data-table">
+<thead><tr><th>S.N</th><th>Date</th><th>Student Name</th><th>Grade/Section</th><th>Status</th></tr></thead>
+<tbody id="studentAttendanceHistoryBody">
+<tr><td colspan="5" class="empty-state"><div class="empty-state-icon">📊</div><p>Loading student attendance history...</p></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+
+<!-- Add Employee Modal -->
+<div class="modal" id="addEmployeeModal">
+<div class="modal-content">
+<div class="modal-header"><h3>Add New Employee</h3><button class="close-modal" id="closeAddEmployeeModal">&times;</button></div>
+<div class="modal-body">
+<form id="addEmployeeForm">
+<div class="form-grid">
+<div class="form-group"><label for="empId" class="required">Employee ID</label><input type="text" id="empId" class="form-control" placeholder="EMP-001" required></div>
+<div class="form-group"><label for="empName" class="required">Full Name</label><input type="text" id="empName" class="form-control" placeholder="John Doe" required></div>
+<div class="form-group"><label for="empEmail" class="required">Email Address</label><input type="email" id="empEmail" class="form-control" placeholder="john.doe@school.edu" required></div>
+<div class="form-group"><label for="empGrade" class="required">Grade Assigned</label><select id="empGrade" class="form-control" required><option value="">Select Grade</option><option value="Grade 1">Grade 1</option><option value="Grade 2">Grade 2</option><option value="Grade 3">Grade 3</option><option value="Grade 4">Grade 4</option><option value="Grade 5">Grade 5</option><option value="Grade 6">Grade 6</option><option value="Grade 7">Grade 7</option><option value="Grade 8">Grade 8</option><option value="Grade 9">Grade 9</option><option value="Grade 10">Grade 10</option><option value="Grade 11">Grade 11</option><option value="Grade 12">Grade 12</option></select></div>
+<div class="form-group"><label for="empPhone">Phone Number</label><input type="tel" id="empPhone" class="form-control" placeholder="+1 234 567 8900"></div>
+<div class="form-group"><label for="empAddress">Address</label><input type="text" id="empAddress" class="form-control" placeholder="123 Main St, City"></div>
+<div class="form-group"><label for="empPassword" class="required">Set Password</label><input type="password" id="empPassword" class="form-control" placeholder="Set initial password" required></div>
+</div>
+</form>
+</div>
+<div class="modal-footer">
+<button class="secondary-btn" id="cancelAddEmployee">Cancel</button>
+<button class="primary-btn" id="saveEmployeeBtn">Save Employee</button>
+</div>
+</div>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal" id="addStudentModal">
+<div class="modal-content">
+<div class="modal-header"><h3>Add New Student</h3><button class="close-modal" id="closeAddStudentModal">&times;</button></div>
+<div class="modal-body">
+<form id="addStudentForm">
+<div class="form-grid">
+<div class="form-group"><label for="stuId" class="required">Student ID</label><input type="text" id="stuId" class="form-control" placeholder="STU-001" required></div>
+<div class="form-group"><label for="stuName" class="required">Full Name</label><input type="text" id="stuName" class="form-control" placeholder="Alex Johnson" required></div>
+<div class="form-group"><label for="stuGrade" class="required">Grade</label><select id="stuGrade" class="form-control" required><option value="">Select Grade</option><option value="Grade 1">Grade 1</option><option value="Grade 2">Grade 2</option><option value="Grade 3">Grade 3</option><option value="Grade 4">Grade 4</option><option value="Grade 5" selected>Grade 5</option><option value="Grade 6">Grade 6</option></select></div>
+<div class="form-group"><label for="stuSection" class="required">Section</label><select id="stuSection" class="form-control" required><option value="">Select Section</option><option value="A" selected>Section A</option><option value="B">Section B</option><option value="C">Section C</option></select></div>
+<div class="form-group"><label for="parentName">Parent/Guardian Name</label><input type="text" id="parentName" class="form-control" placeholder="Maria Johnson"></div>
+<div class="form-group"><label for="parentPhone" class="required">Parent Contact</label><input type="tel" id="parentPhone" class="form-control" placeholder="+1 234 567 8900" required></div>
+</div>
+</form>
+</div>
+<div class="modal-footer">
+<button class="secondary-btn" id="cancelAddStudent">Cancel</button>
+<button class="primary-btn teacher" id="saveStudentBtn">Save Student</button>
+</div>
+</div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast" id="toastNotification">
+<div class="toast-icon">✓</div>
+<div class="toast-message">Attendance saved successfully!</div>
+</div>
+
+<script>
+// ======================
+// API HELPER FUNCTIONS
+// ======================
+function getAuthToken() {
+    return localStorage.getItem('auth_token');
+}
+
+function getAuthHeaders() {
+    const token = getAuthToken();
+    return token ? { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    } : { 'Content-Type': 'application/json' };
+}
+
+async function apiCall(endpoint, options = {}) {
+    const url = endpoint.startsWith('http') ? endpoint : `${window.location.origin}${endpoint}`;
+    const config = {
+        ...options,
+        headers: {
+            ...getAuthHeaders(),
+            ...options.headers
+        }
+    };
+    
+    try {
+        const response = await fetch(url, config);
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+        }
+        
+        return { success: true, data };
+    } catch (error) {
+        console.error('API Error:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+// ======================
+// DOM ELEMENTS
+// ======================
+const loginPage = document.getElementById('loginPage');
+const adminDashboard = document.getElementById('adminDashboard');
+const teacherDashboard = document.getElementById('teacherDashboard');
+const adminLogoutBtn = document.getElementById('adminLogout');
+const teacherLogoutBtn = document.getElementById('teacherLogout');
+const loginForm = document.getElementById('loginForm');
+const adminLoginFields = document.getElementById('adminLoginFields');
+const teacherLoginFields = document.getElementById('teacherLoginFields');
+const roleBtns = document.querySelectorAll('.role-btn');
+const toggleAdminPassword = document.getElementById('toggleAdminPassword');
+const toggleTeacherPassword = document.getElementById('toggleTeacherPassword');
+const adminIdInput = document.getElementById('adminId');
+const adminPasswordInput = document.getElementById('adminPassword');
+const teacherIdInput = document.getElementById('teacherId');
+const teacherGradeSelect = document.getElementById('teacherGrade');
+const teacherPasswordInput = document.getElementById('teacherPassword');
+const loginBtn = document.getElementById('loginBtn');
+const adminMenuLinks = document.querySelectorAll('#adminDashboard .sidebar-menu a');
+const adminViews = document.querySelectorAll('#adminDashboard .view');
+const adminUserName = document.getElementById('adminUserName');
+const adminUserDisplay = document.getElementById('adminUserDisplay');
+const currentDateAdmin = document.getElementById('currentDateAdmin');
+const teacherMenuLinks = document.querySelectorAll('#teacherDashboard .sidebar-menu a');
+const teacherViews = document.querySelectorAll('#teacherDashboard .view');
+const teacherUserName = document.getElementById('teacherUserName');
+const teacherGradeDisplay = document.getElementById('teacherGradeDisplay');
+const teacherUserDisplay = document.getElementById('teacherUserDisplay');
+const currentDateTeacher = document.getElementById('currentDateTeacher');
+const teacherGradeFilter = document.getElementById('teacherGradeFilter');
+const teacherSectionFilter = document.getElementById('teacherSectionFilter');
+const addEmployeeModal = document.getElementById('addEmployeeModal');
+const addStudentModal = document.getElementById('addStudentModal');
+const closeAddEmployeeModal = document.getElementById('closeAddEmployeeModal');
+const closeAddStudentModal = document.getElementById('closeAddStudentModal');
+const addNewEmployeeBtn = document.getElementById('addNewEmployeeBtn');
+const addFirstEmployeeBtn = document.getElementById('addFirstEmployeeBtn');
+const addNewStudentBtn = document.getElementById('addNewStudentBtn');
+const addFirstStudentBtn = document.getElementById('addFirstStudentBtn');
+const cancelAddEmployee = document.getElementById('cancelAddEmployee');
+const cancelAddStudent = document.getElementById('cancelAddStudent');
+const saveEmployeeBtn = document.getElementById('saveEmployeeBtn');
+const saveStudentBtn = document.getElementById('saveStudentBtn');
+const toastNotification = document.getElementById('toastNotification');
+const tabs = document.querySelectorAll('.tab');
+const loadStudentsBtn = document.getElementById('loadStudentsBtn');
+const saveAttendanceBtn = document.getElementById('saveAttendanceBtn');
+const loadStudentAttendanceBtn = document.getElementById('loadStudentAttendanceBtn');
+const employeesManagementTableBody = document.getElementById('employeesManagementTableBody');
+const studentsManagementTableBody = document.getElementById('studentsManagementTableBody');
+const employeesTableBody = document.getElementById('employeesTableBody');
+const teacherAttendanceTableBody = document.getElementById('teacherAttendanceTableBody');
+const teacherStudentsTableBody = document.getElementById('teacherStudentsTableBody');
+const adminStudentsTableBody = document.getElementById('adminStudentsTableBody');
+const adminPresentCount = document.getElementById('adminPresentCount');
+const adminAbsentCount = document.getElementById('adminAbsentCount');
+const adminLateCount = document.getElementById('adminLateCount');
+const adminEarlyCount = document.getElementById('adminEarlyCount');
+const adminLeaveCount = document.getElementById('adminLeaveCount');
+const teacherPresentCount = document.getElementById('teacherPresentCount');
+const teacherAbsentCount = document.getElementById('teacherAbsentCount');
+const teacherLateCount = document.getElementById('teacherLateCount');
+const teacherEarlyCount = document.getElementById('teacherEarlyCount');
+const teacherLeaveCount = document.getElementById('teacherLeaveCount');
+
+// ======================
+// INITIALIZATION
+// ======================
+document.addEventListener('DOMContentLoaded', () => {
+    // Set current date
+    const today = new Date().toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+    });
+    currentDateAdmin.textContent = today;
+    currentDateTeacher.textContent = today;
+    
+    // Check for existing session
+    checkExistingSession();
+    
+    // Setup event listeners
+    setupEventListeners();
+    
+    // Initialize checkboxes
+    initializeCheckboxes();
+});
+
+function checkExistingSession() {
+    const token = getAuthToken();
+    if (!token) return;
+    
+    // Verify token is still valid
+    apiCall('/api/health').then(result => {
+        if (result.success && result.data.status === 'healthy') {
+            const userRole = localStorage.getItem('user_role');
+            const userData = JSON.parse(localStorage.getItem('user_data') || '{}');
+            
+            if (userRole === 'admin') {
+                restoreAdminSession(userData);
+            } else if (userRole === 'teacher') {
+                restoreTeacherSession(userData);
+            }
+        } else {
+            clearSession();
+        }
+    }).catch(() => clearSession());
+}
+
+function restoreAdminSession(userData) {
+    adminUserName.textContent = userData.name || 'Administrator';
+    adminUserDisplay.textContent = userData.user_id;
+    loginPage.style.display = 'none';
+    adminDashboard.classList.add('active');
+    loadAdminDashboardData();
+    showToast(`Welcome back, ${userData.name}!`, 'success');
+}
+
+function restoreTeacherSession(userData) {
+    teacherUserName.textContent = userData.name || 'Teacher';
+    teacherGradeDisplay.textContent = userData.grade || 'Unassigned';
+    teacherUserDisplay.textContent = userData.user_id;
+    loginPage.style.display = 'none';
+    teacherDashboard.classList.add('active');
+    
+    if (userData.grade) {
+        teacherGradeFilter.value = userData.grade;
+        document.getElementById('historyGradeFilter').value = userData.grade;
+    }
+    
+    loadTeacherDashboardData();
+    showToast(`Welcome back, ${userData.name}!`, 'success');
+}
+
+function clearSession() {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('user_data');
+}
+
+function setupEventListeners() {
+    // Role selection
+    roleBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            roleBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            if (btn.dataset.role === 'teacher') {
+                adminLoginFields.style.display = 'none';
+                teacherLoginFields.style.display = 'block';
+                loginBtn.textContent = 'Teacher Login';
+                loginBtn.className = 'login-btn teacher';
+            } else {
+                adminLoginFields.style.display = 'block';
+                teacherLoginFields.style.display = 'none';
+                loginBtn.textContent = 'Admin Login';
+                loginBtn.className = 'login-btn';
+            }
+        });
+    });
+    
+    // Password toggles
+    toggleAdminPassword.addEventListener('click', () => togglePasswordVisibility(adminPasswordInput, toggleAdminPassword));
+    toggleTeacherPassword.addEventListener('click', () => togglePasswordVisibility(teacherPasswordInput, toggleTeacherPassword));
+    
+    // Login form
+    loginForm.addEventListener('submit', handleLogin);
+    
+    // Navigation
+    adminMenuLinks.forEach(link => link.addEventListener('click', (e) => handleNavigation(e, adminMenuLinks, adminViews, link)));
+    teacherMenuLinks.forEach(link => link.addEventListener('click', (e) => handleNavigation(e, teacherMenuLinks, teacherViews, link)));
+    
+    // Tabs
+    tabs.forEach(tab => tab.addEventListener('click', handleTabClick));
+    
+    // Logout
+    adminLogoutBtn.addEventListener('click', handleLogout);
+    teacherLogoutBtn.addEventListener('click', handleLogout);
+    
+    // Modals
+    addNewEmployeeBtn.addEventListener('click', () => addEmployeeModal.classList.add('show'));
+    addFirstEmployeeBtn?.addEventListener('click', () => addEmployeeModal.classList.add('show'));
+    addNewStudentBtn.addEventListener('click', () => addStudentModal.classList.add('show'));
+    addFirstStudentBtn?.addEventListener('click', () => addStudentModal.classList.add('show'));
+    closeAddEmployeeModal.addEventListener('click', () => addEmployeeModal.classList.remove('show'));
+    closeAddStudentModal.addEventListener('click', () => addStudentModal.classList.remove('show'));
+    cancelAddEmployee.addEventListener('click', () => addEmployeeModal.classList.remove('show'));
+    cancelAddStudent.addEventListener('click', () => addStudentModal.classList.remove('show'));
+    
+    // Data loading buttons
+    loadStudentsBtn.addEventListener('click', loadStudentsForAttendance);
+    loadStudentAttendanceBtn.addEventListener('click', loadStudentAttendanceForAdmin);
+    saveAttendanceBtn.addEventListener('click', saveStudentAttendance);
+    saveEmployeeBtn.addEventListener('click', saveEmployee);
+    saveStudentBtn.addEventListener('click', saveStudent);
+    
+    // QR Scan button
+    document.getElementById('startScanBtn')?.addEventListener('click', () => {
+        showToast('QR scanning requires camera access. Contact admin for QR code generation.', 'info');
+    });
+}
+
+// ======================
+// CORE FUNCTIONS
+// ======================
+function togglePasswordVisibility(input, toggleBtn) {
+    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+    input.setAttribute('type', type);
+    toggleBtn.textContent = type === 'password' ? '👁️' : '🙈';
+}
+
+async function handleLogin(e) {
+    e.preventDefault();
+    
+    const isTeacherLogin = teacherLoginFields.style.display !== 'none';
+    let isValid = true;
+    
+    // Reset errors
+    document.querySelectorAll('.error-message').forEach(el => el.classList.remove('show'));
+    
+    // Validate fields
+    if (isTeacherLogin) {
+        if (!teacherIdInput.value.trim()) {
+            document.getElementById('teacherIdError').classList.add('show');
+            isValid = false;
+        }
+        if (!teacherGradeSelect.value) {
+            document.getElementById('teacherGradeError').classList.add('show');
+            isValid = false;
+        }
+        if (!teacherPasswordInput.value) {
+            document.getElementById('teacherPasswordError').classList.add('show');
+            isValid = false;
+        }
+    } else {
+        if (!adminIdInput.value.trim()) {
+            document.getElementById('adminIdError').classList.add('show');
+            isValid = false;
+        }
+        if (!adminPasswordInput.value) {
+            document.getElementById('adminPasswordError').classList.add('show');
+            isValid = false;
+        }
+    }
+    
+    if (!isValid) {
+        showToast('Please fill all required fields', 'error');
+        return;
+    }
+    
+    // Prepare login data
+    const loginData = isTeacherLogin ? {
+        user_id: teacherIdInput.value.trim(),
+        password: teacherPasswordInput.value,
+        role: 'teacher'
+    } : {
+        user_id: adminIdInput.value.trim(),
+        password: adminPasswordInput.value,
+        role: 'admin'
+    };
+    
+    // Show loading state
+    const originalBtnText = loginBtn.textContent;
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = '<span>⏳</span> Authenticating...';
+    
+    // REAL API CALL TO BACKEND
+    const result = await apiCall('/api/login', {
+        method: 'POST',
+        body: JSON.stringify(loginData)
+    });
+    
+    loginBtn.disabled = false;
+    loginBtn.textContent = originalBtnText;
+    loginBtn.className = loginBtn.className.replace(' teacher', '');
+    if (isTeacherLogin) loginBtn.classList.add('teacher');
+    
+    if (result.success) {
+        // Save session data
+        localStorage.setItem('auth_token', result.data.token);
+        localStorage.setItem('user_role', result.data.user.role);
+        localStorage.setItem('user_data', JSON.stringify(result.data.user));
+        
+        // Update UI
+        if (isTeacherLogin) {
+            teacherUserName.textContent = result.data.user.name;
+            teacherGradeDisplay.textContent = result.data.user.grade || 'Unassigned';
+            teacherUserDisplay.textContent = result.data.user.user_id;
+            loginPage.style.display = 'none';
+            teacherDashboard.classList.add('active');
+            
+            if (result.data.user.grade) {
+                teacherGradeFilter.value = result.data.user.grade;
+                document.getElementById('historyGradeFilter').value = result.data.user.grade;
+            }
+            
+            loadTeacherDashboardData();
+        } else {
+            adminUserName.textContent = result.data.user.name;
+            adminUserDisplay.textContent = result.data.user.user_id;
+            loginPage.style.display = 'none';
+            adminDashboard.classList.add('active');
+            loadAdminDashboardData();
+        }
+        
+        showToast(`✅ Welcome, ${result.data.user.name}!`, 'success');
+    } else {
+        let errorMsg = result.error || 'Authentication failed';
+        if (errorMsg.toLowerCase().includes('not activated')) {
+            errorMsg = '🔒 Account not activated. Contact administrator.';
+        } else if (errorMsg.includes('Invalid credentials') || errorMsg.includes('401')) {
+            errorMsg = '🔑 Invalid User ID or Password';
+        } else if (errorMsg.includes('404')) {
+            errorMsg = '🌐 API endpoint not found. Contact system administrator.';
+        }
+        showToast(errorMsg, 'error');
+        console.error('Login failed:', result.error);
+    }
+}
+
+function handleLogout() {
+    clearSession();
+    
+    // Hide dashboards and show login
+    adminDashboard.classList.remove('active');
+    teacherDashboard.classList.remove('active');
+    loginPage.style.display = 'flex';
+    loginForm.reset();
+    
+    // Reset role selection to admin
+    roleBtns.forEach(b => b.classList.remove('active'));
+    document.querySelector('.role-btn.admin').classList.add('active');
+    adminLoginFields.style.display = 'block';
+    teacherLoginFields.style.display = 'none';
+    loginBtn.textContent = 'Admin Login';
+    loginBtn.className = 'login-btn';
+    
+    showToast('Logged out successfully', 'success');
+}
+
+function handleNavigation(e, menuLinks, views, link) {
+    e.preventDefault();
+    
+    menuLinks.forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+    
+    views.forEach(view => view.classList.remove('active'));
+    const viewId = link.dataset.view + '-view';
+    const targetView = document.getElementById(viewId);
+    if (targetView) {
+        targetView.classList.add('active');
+        
+        // Load data for specific views
+        if (viewId === 'admin-dashboard-view' && localStorage.getItem('user_role') === 'admin') {
+            loadAdminDashboardData();
+        } else if (viewId === 'teacher-dashboard-view' && localStorage.getItem('user_role') === 'teacher') {
+            loadTeacherDashboardData();
+        } else if (viewId === 'manage-employees-view' && localStorage.getItem('user_role') === 'admin') {
+            loadEmployeeManagementData();
+        } else if (viewId === 'manage-students-view' && localStorage.getItem('user_role') === 'teacher') {
+            loadStudentManagementData();
+        }
+    }
+}
+
+function handleTabClick() {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    this.classList.add('active');
+    const tabId = this.dataset.tab + '-tab';
+    document.getElementById(tabId)?.classList.add('active');
+}
+
+// ======================
+// DATA LOADING FUNCTIONS (ZERO MOCK DATA)
+// ======================
+async function loadAdminDashboardData() {
+    // Show loading states
+    employeesTableBody.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="spinner"></div><p>Loading attendance records...</p></td></tr>';
+    
+    // Load today's employee attendance
+    const attendanceResult = await apiCall('/api/attendance/employees');
+    if (attendanceResult.success) {
+        renderEmployeeAttendanceTable(attendanceResult.data.attendance, employeesTableBody);
+    } else {
+        employeesTableBody.innerHTML = `<tr><td colspan="7" class="empty-state"><div class="empty-state-icon">⚠️</div><p>${attendanceResult.error || 'Failed to load attendance'}</p></td></tr>`;
+    }
+    
+    // Load attendance statistics
+    const statsResult = await apiCall('/api/attendance/employees/stats');
+    if (statsResult.success) {
+        updateStats(statsResult.data.stats, 'admin');
+    }
+}
+
+async function loadTeacherDashboardData() {
+    // Show loading state
+    teacherAttendanceTableBody.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="spinner"></div><p>Loading your attendance...</p></td></tr>';
+    
+    // Load teacher's own attendance
+    const attendanceResult = await apiCall('/api/attendance/employees');
+    if (attendanceResult.success) {
+        renderTeacherAttendanceTable(attendanceResult.data.attendance, teacherAttendanceTableBody);
+    } else {
+        teacherAttendanceTableBody.innerHTML = `<tr><td colspan="7" class="empty-state"><div class="empty-state-icon">⚠️</div><p>${attendanceResult.error || 'Failed to load attendance'}</p></td></tr>`;
+    }
+    
+    // Load stats
+    const statsResult = await apiCall('/api/attendance/employees/stats');
+    if (statsResult.success) {
+        updateStats(statsResult.data.stats, 'teacher');
+    }
+}
+
+async function loadEmployeeManagementData() {
+    employeesManagementTableBody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="spinner"></div><p>Loading employees...</p></td></tr>';
+    
+    const result = await apiCall('/api/employees?include_inactive=true');
+    if (result.success && result.data.employees && result.data.employees.length > 0) {
+        renderEmployeesTable(result.data.employees, employeesManagementTableBody);
+    } else {
+        employeesManagementTableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty-state">
+                    <div class="empty-state-icon">👥</div>
+                    <p>No employees registered yet</p>
+                    <button class="primary-btn" id="addFirstEmployeeBtn">Add First Employee</button>
+                </td>
+            </tr>
+        `;
+        document.getElementById('addFirstEmployeeBtn')?.addEventListener('click', () => {
+            addEmployeeModal.classList.add('show');
+        });
+    }
+}
+
+async function loadStudentManagementData() {
+    studentsManagementTableBody.innerHTML = '<tr><td colspan="6" class="empty-state"><div class="spinner"></div><p>Loading students...</p></td></tr>';
+    
+    const teacherGrade = teacherGradeDisplay.textContent;
+    const sectionFilter = document.getElementById('teacherSectionFilter')?.value || 'A';
+    
+    const result = await apiCall(`/api/students?grade=${encodeURIComponent(teacherGrade)}&section=${encodeURIComponent(sectionFilter)}`);
+    if (result.success && result.data.students && result.data.students.length > 0) {
+        renderStudentsTable(result.data.students, studentsManagementTableBody);
+    } else {
+        studentsManagementTableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty-state">
+                    <div class="empty-state-icon">👥</div>
+                    <p>No students registered for ${teacherGrade} ${sectionFilter}</p>
+                    <button class="primary-btn teacher" id="addFirstStudentBtn">Add First Student</button>
+                </td>
+            </tr>
+        `;
+        document.getElementById('addFirstStudentBtn')?.addEventListener('click', () => {
+            addStudentModal.classList.add('show');
+        });
+    }
+}
+
+async function loadStudentsForAttendance() {
+    const grade = teacherGradeFilter.value;
+    const section = teacherSectionFilter.value;
+    
+    if (!grade || !section) {
+        showToast('Please select both grade and section', 'warning');
+        return;
+    }
+    
+    // Show loading state
+    teacherStudentsTableBody.innerHTML = '<tr><td colspan="3" class="empty-state"><div class="spinner"></div><p>Loading students...</p></td></tr>';
+    
+    const result = await apiCall(`/api/students?grade=${encodeURIComponent(grade)}&section=${encodeURIComponent(section)}`);
+    
+    if (result.success && result.data.students && result.data.students.length > 0) {
+        renderStudentAttendanceTable(result.data.students, teacherStudentsTableBody, true);
+        initializeCheckboxes();
+    } else {
+        teacherStudentsTableBody.innerHTML = `
+            <tr>
+                <td colspan="3" class="empty-state">
+                    <div class="empty-state-icon">🎓</div>
+                    <p>No students found for ${grade} ${section}</p>
+                    <button class="primary-btn teacher" id="addStudentFromAttendanceBtn">Add Students</button>
+                </td>
+            </tr>
+        `;
+        document.getElementById('addStudentFromAttendanceBtn')?.addEventListener('click', () => {
+            addStudentModal.classList.add('show');
+        });
+    }
+}
+
+async function loadStudentAttendanceForAdmin() {
+    const grade = document.getElementById('adminGradeFilter').value;
+    const section = document.getElementById('adminSectionFilter').value;
+    
+    if (!grade || !section) {
+        showToast('Please select both grade and section', 'warning');
+        return;
+    }
+    
+    adminStudentsTableBody.innerHTML = '<tr><td colspan="3" class="empty-state"><div class="spinner"></div><p>Loading attendance...</p></td></tr>';
+    
+    const result = await apiCall(`/api/students?grade=${encodeURIComponent(grade)}&section=${encodeURIComponent(section)}`);
+    
+    if (result.success && result.data.students && result.data.students.length > 0) {
+        renderStudentAttendanceTable(result.data.students, adminStudentsTableBody, false);
+    } else {
+        adminStudentsTableBody.innerHTML = `
+            <tr>
+                <td colspan="3" class="empty-state">
+                    <div class="empty-state-icon">🎓</div>
+                    <p>No students found for ${grade} ${section}</p>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// ======================
+// RENDERING FUNCTIONS
+// ======================
+function renderEmployeeAttendanceTable(data, tableBody) {
+    if (!data || data.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <p>No attendance records found for today</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tableBody.innerHTML = data.map((att, index) => `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${new Date().toLocaleDateString('en-US', { weekday: 'long' })}</td>
+            <td>${att.name || 'N/A'}</td>
+            <td>${att.check_in || '-'}</td>
+            <td>${att.check_out || '-'}</td>
+            <td><span class="status-badge status-${(att.status || 'pending').toLowerCase()}">${att.status || 'Pending'}</span></td>
+            <td>${att.remarks || '-'}</td>
+        </tr>
+    `).join('');
+}
+
+function renderTeacherAttendanceTable(data, tableBody) {
+    if (!data || data.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="7" class="empty-state">
+                    <div class="empty-state-icon">⏰</div>
+                    <p>No attendance recorded for today</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tableBody.innerHTML = data.map((att, index) => `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${att.date || '-'}</td>
+            <td>${new Date(att.date).toLocaleDateString('en-US', { weekday: 'long' })}</td>
+            <td>${att.check_in || '-'}</td>
+            <td>${att.check_out || '-'}</td>
+            <td><span class="status-badge status-${(att.status || 'pending').toLowerCase()}">${att.status || 'Pending'}</span></td>
+            <td>${att.remarks || '-'}</td>
+        </tr>
+    `).join('');
+}
+
+function renderStudentAttendanceTable(students, tableBody, isEditable) {
+    if (!students || students.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="3" class="empty-state">
+                    <div class="empty-state-icon">🎓</div>
+                    <p>No students found</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tableBody.innerHTML = students.map((student, index) => `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${student.name}</td>
+            <td>
+                <div class="checkbox-container">
+                    <div class="custom-checkbox ${isEditable ? 'teacher' : ''}" 
+                         data-id="${student.id}"
+                         ${isEditable ? '' : 'style="opacity:0.6; pointer-events:none;"'}>
+                        ${student.is_present ? '✓' : ''}
+                    </div>
+                    ${isEditable ? '<label class="checkbox-label">Present</label>' : 
+                      `<span class="${student.is_present ? 'status-present' : 'status-absent'}">
+                       ${student.is_present ? 'Present' : 'Absent'}</span>`}
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function renderEmployeesTable(employees, tableBody) {
+    if (!employees || employees.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty-state">
+                    <div class="empty-state-icon">👥</div>
+                    <p>No employees registered yet</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tableBody.innerHTML = employees.map((emp, index) => `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${emp.user_id}</td>
+            <td>${emp.name}</td>
+            <td>${emp.email || 'N/A'}</td>
+            <td>${emp.grade || 'Unassigned'}</td>
+            <td class="action-cell">
+                ${emp.is_active ? 
+                    `<span class="status-badge status-present">Active</span>` : 
+                    `<button class="primary-btn activate-btn" data-id="${emp.id}" style="padding:0.3rem 0.6rem;font-size:0.75rem;">Activate</button>`
+                }
+            </td>
+        </tr>
+    `).join('');
+    
+    // Add event listeners for activate buttons
+    tableBody.querySelectorAll('.activate-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const empId = e.target.dataset.id;
+            const result = await apiCall(`/api/employees/${empId}/activate`, { method: 'POST' });
+            if (result.success) {
+                showToast('Employee activated successfully!', 'success');
+                loadEmployeeManagementData();
+            } else {
+                showToast(`Activation failed: ${result.error}`, 'error');
+            }
+        });
+    });
+}
+
+function renderStudentsTable(students, tableBody) {
+    if (!students || students.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty-state">
+                    <div class="empty-state-icon">👥</div>
+                    <p>No students registered</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tableBody.innerHTML = students.map((student, index) => `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${student.student_id}</td>
+            <td>${student.name}</td>
+            <td>${student.grade}/${student.section}</td>
+            <td>${student.parent_contact}</td>
+            <td class="action-cell">
+                <button class="icon-btn edit" title="Edit">✏️</button>
+                <button class="icon-btn delete" title="Delete" data-id="${student.id}">🗑️</button>
+            </td>
+        </tr>
+    `).join('');
+    
+    // Add delete event listeners
+    tableBody.querySelectorAll('.delete').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            if (confirm('Are you sure you want to delete this student?')) {
+                const studentId = e.target.dataset.id;
+                showToast('Delete functionality requires backend implementation', 'info');
+            }
+        });
+    });
+}
+
+function updateStats(stats, prefix) {
+    document.getElementById(`${prefix}PresentCount`).textContent = stats.Present || 0;
+    document.getElementById(`${prefix}AbsentCount`).textContent = stats.Absent || 0;
+    document.getElementById(`${prefix}LateCount`).textContent = stats.Late || 0;
+    document.getElementById(`${prefix}EarlyCount`).textContent = stats.Early || 0;
+    document.getElementById(`${prefix}LeaveCount`).textContent = stats.Leave || 0;
+}
+
+// ======================
+// SAVE FUNCTIONS (REAL API CALLS)
+// ======================
+async function saveStudentAttendance() {
+    const checkboxes = document.querySelectorAll('#teacherStudentsTableBody .custom-checkbox.teacher');
+    if (checkboxes.length === 0) {
+        showToast('No students loaded. Please load students first.', 'warning');
+        return;
+    }
+    
+    const attendanceData = Array.from(checkboxes).map(checkbox => ({
+        student_id: parseInt(checkbox.dataset.id),
+        present: checkbox.textContent.trim() === '✓'
+    }));
+    
+    // Show loading state
+    const originalBtnText = saveAttendanceBtn.innerHTML;
+    saveAttendanceBtn.disabled = true;
+    saveAttendanceBtn.innerHTML = '<span>⏳</span> Saving...';
+    
+    const result = await apiCall('/api/attendance/students', {
+        method: 'POST',
+        body: JSON.stringify({ attendance: attendanceData })
+    });
+    
+    // Restore button
+    saveAttendanceBtn.disabled = false;
+    saveAttendanceBtn.innerHTML = originalBtnText;
+    
+    if (result.success) {
+        showToast('✅ Student attendance saved successfully!', 'success');
+        loadStudentsForAttendance();
+    } else {
+        showToast(`❌ Failed to save attendance: ${result.error}`, 'error');
+    }
+}
+
+async function saveEmployee() {
+    const empId = document.getElementById('empId').value.trim();
+    const empName = document.getElementById('empName').value.trim();
+    const empEmail = document.getElementById('empEmail').value.trim();
+    const empGrade = document.getElementById('empGrade').value;
+    const empPassword = document.getElementById('empPassword')?.value.trim();
+    
+    if (!empId || !empName || !empEmail || !empGrade) {
+        showToast('Please fill all required fields', 'error');
+        return;
+    }
+    
+    if (!empPassword || empPassword.length < 6) {
+        showToast('Password is required (minimum 6 characters)', 'error');
+        return;
+    }
+    
+    const employeeData = {
+        user_id: empId,
+        password: empPassword,
+        name: empName,
+        grade: empGrade,
+        email: empEmail,
+        phone: document.getElementById('empPhone').value.trim(),
+        address: document.getElementById('empAddress').value.trim()
+    };
+    
+    // Show loading state
+    const originalBtnText = saveEmployeeBtn.innerHTML;
+    saveEmployeeBtn.disabled = true;
+    saveEmployeeBtn.innerHTML = '<span>⏳</span> Saving...';
+    
+    const result = await apiCall('/api/employees', {
+        method: 'POST',
+        body: JSON.stringify(employeeData)
+    });
+    
+    // Restore button
+    saveEmployeeBtn.disabled = false;
+    saveEmployeeBtn.innerHTML = originalBtnText;
+    
+    if (result.success) {
+        showToast(`✅ Employee "${empName}" added successfully! Account requires activation.`, 'success');
+        addEmployeeModal.classList.remove('show');
+        document.getElementById('addEmployeeForm').reset();
+        loadEmployeeManagementData();
+    } else {
+        let errorMsg = result.error || 'Failed to add employee';
+        if (errorMsg.includes('exists')) {
+            errorMsg = 'Employee ID already exists. Please use a unique ID.';
+        }
+        showToast(`❌ ${errorMsg}`, 'error');
+    }
+}
+
+async function saveStudent() {
+    const stuId = document.getElementById('stuId').value.trim();
+    const stuName = document.getElementById('stuName').value.trim();
+    const stuGrade = document.getElementById('stuGrade').value;
+    const stuSection = document.getElementById('stuSection').value;
+    const parentPhone = document.getElementById('parentPhone').value.trim();
+    
+    if (!stuId || !stuName || !stuGrade || !stuSection || !parentPhone) {
+        showToast('Please fill all required fields', 'error');
+        return;
+    }
+    
+    const studentData = {
+        student_id: stuId,
+        name: stuName,
+        grade: stuGrade,
+        section: stuSection,
+        parent_name: document.getElementById('parentName').value.trim(),
+        parent_contact: parentPhone
+    };
+    
+    // Show loading state
+    const originalBtnText = saveStudentBtn.innerHTML;
+    saveStudentBtn.disabled = true;
+    saveStudentBtn.innerHTML = '<span>⏳</span> Saving...';
+    
+    const result = await apiCall('/api/students', {
+        method: 'POST',
+        body: JSON.stringify(studentData)
+    });
+    
+    // Restore button
+    saveStudentBtn.disabled = false;
+    saveStudentBtn.innerHTML = originalBtnText;
+    
+    if (result.success) {
+        showToast(`✅ Student "${stuName}" added successfully!`, 'success');
+        addStudentModal.classList.remove('show');
+        document.getElementById('addStudentForm').reset();
+        if (localStorage.getItem('user_role') === 'teacher') {
+            loadStudentManagementData();
+        }
+    } else {
+        let errorMsg = result.error || 'Failed to add student';
+        if (errorMsg.includes('exists')) {
+            errorMsg = 'Student ID already exists. Please use a unique ID.';
+        }
+        showToast(`❌ ${errorMsg}`, 'error');
+    }
+}
+
+// ======================
+// UTILITY FUNCTIONS
+// ======================
+function initializeCheckboxes() {
+    document.querySelectorAll('.custom-checkbox.teacher').forEach(checkbox => {
+        if (!checkbox.dataset.initialized) {
+            checkbox.addEventListener('click', () => {
+                checkbox.classList.toggle('checked');
+                checkbox.textContent = checkbox.classList.contains('checked') ? '✓' : '';
+            });
+            checkbox.dataset.initialized = 'true';
+        }
+    });
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toastNotification');
+    if (!toast) return;
+    
+    toast.className = 'toast';
+    toast.classList.add(type);
+    toast.querySelector('.toast-message').textContent = message;
+    
+    const iconEl = toast.querySelector('.toast-icon');
+    if (type === 'success') iconEl.textContent = '✓';
+    else if (type === 'error') iconEl.textContent = '✗';
+    else if (type === 'warning') iconEl.textContent = '⚠️';
+    else iconEl.textContent = 'ℹ️';
+    
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+</script>
+</body>
+</html>
+
